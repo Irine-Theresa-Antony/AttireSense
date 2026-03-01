@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.pyc
+*.pth
+
+# Models folder
+Backend/warping_backend/models/
+
+# Node / frontend
+node_modules/
+package-lock.json
+
+# Environment
+.env

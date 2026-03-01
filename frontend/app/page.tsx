@@ -9,6 +9,16 @@ export default function AttireSensePage() {
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [mode, setMode] = useState<"bg" | "tryon" | "rec">("bg");
 
+  const models = [
+  { id: "00826_00", image: "/models/00826_00.jpg" },
+  { id: "00829_00", image: "/models/00829_00.jpg" },
+  { id: "00831_00", image: "/models/00831_00.jpg" },
+  { id: "00837_00", image: "/models/00837_00.jpg" },
+  { id: "00838_00", image: "/models/00838_00.jpg" },
+];
+  const [selectedModel, setSelectedModel] = useState(models[0]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !e.target.files[0]) return;
     const selectedFile = e.target.files[0];
@@ -19,10 +29,12 @@ export default function AttireSensePage() {
   };
 
   const handleProcess = async (selectedMode: "bg" | "tryon" | "rec") => {
-    setMode(selectedMode);
+  setMode(selectedMode);
 
-    if (selectedMode !== "rec" || !file) return;
+  if (!file) return;
 
+  // ------------------ RECOMMENDATION ------------------
+  if (selectedMode === "rec") {
     const formData = new FormData();
     formData.append("file", file);
 
@@ -33,14 +45,47 @@ export default function AttireSensePage() {
       });
 
       const data = await res.json();
-
       const recImages = data.recommendations.map((r: any) => r.image);
       setRecommendations(recImages);
+      setResult(null);
 
     } catch (err) {
       console.error(err);
     }
-  };
+
+    return;
+  }
+
+  // ------------------ TRY ON ------------------
+  if (selectedMode === "tryon") {
+    const formData = new FormData();
+    formData.append("cloth", file);
+    formData.append("person_id", selectedModel.id);
+
+    try {
+      const res = await fetch("https://uninterpretative-ozella-stromal.ngrok-free.dev/tryon", {
+        method: "POST",
+        body: formData,
+      });
+
+      const blob = await res.blob();
+      const imageUrl = URL.createObjectURL(blob);
+
+      setResult(imageUrl);
+      setRecommendations([]);
+
+    } catch (err) {
+      console.error(err);
+    }
+
+    return;
+  }
+
+  // ------------------ BG REMOVE (future) ------------------
+  if (selectedMode === "bg") {
+    console.log("Background remove not implemented yet");
+  }
+};
 
   
 
@@ -138,8 +183,80 @@ export default function AttireSensePage() {
             )}
           </div>
         </div>
+        {/* ================= MODEL SELECTOR ================= */}
+        <div className="flex justify-center mt-12 relative z-10">
+          <div className="relative w-72">
 
+            {/* Selected Model */}
+            <button
+              type="button"
+              onClick={() => setShowDropdown(!showDropdown)}
+              className="w-full flex items-center justify-between bg-white border border-gray-300 rounded-xl px-4 py-3 shadow-sm hover:shadow-md transition"
+            >
+              <div className="flex items-center gap-4">
+                <img
+                  src={selectedModel.image}
+                  alt={selectedModel.id}
+                  className="w-14 h-20 object-cover rounded-lg border"
+                />
+                <div className="text-left">
+                  <p className="text-sm text-gray-500">Selected Model</p>
+                  <p className="text-base font-semibold text-gray-800">
+                    {selectedModel.id}
+                  </p>
+                </div>
+              </div>
+
+              <svg
+                className={`w-5 h-5 text-gray-600 transition-transform ${
+                  showDropdown ? "rotate-180" : ""
+                }`}
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {/* Dropdown */}
+            {showDropdown && (
+              <div className="absolute top-full left-0 mt-3 w-full bg-white border border-gray-200 rounded-xl shadow-xl z-50 max-h-72 overflow-y-auto animate-fadeIn">
+
+                {models.map((model) => (
+                  <div
+                    key={model.id}
+                    onClick={() => {
+                      setSelectedModel(model);
+                      setShowDropdown(false);
+                    }}
+                    className={`flex items-center gap-4 px-4 py-3 cursor-pointer transition hover:bg-gray-100 ${
+                      selectedModel.id === model.id ? "bg-gray-50" : ""
+                    }`}
+                  >
+                    <img
+                      src={model.image}
+                      alt={model.id}
+                      className="w-12 h-16 object-cover rounded-md border"
+                    />
+
+                    <div>
+                      <p className="text-sm font-medium text-gray-800">
+                        {model.id}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Click to select
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
         {/* BUTTONS */}
+        
         <div className="flex justify-center gap-10 mt-14">
 
           <button
@@ -151,7 +268,10 @@ export default function AttireSensePage() {
           </button>
 
           <button
-            onClick={() => handleProcess("tryon")}
+            onClick={() => {
+              console.log("tryon clicked");
+              handleProcess("tryon");
+            }}
             disabled={!image}
             className="px-8 py-3 bg-gray-900 text-white rounded-md hover:bg-black transition disabled:opacity-40"
           >
