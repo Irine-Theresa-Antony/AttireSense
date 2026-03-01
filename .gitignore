@@ -3,12 +3,18 @@ __pycache__/
 *.pyc
 *.pth
 
-# Models folder
-Backend/warping_backend/models/
+# Virtual env
+venv/
 
-# Node / frontend
+# Dataset
+dataset/
+
+# Models weights
+*.pth
+
+# Node
 node_modules/
 package-lock.json
 
-# Environment
+# Env
 .env
