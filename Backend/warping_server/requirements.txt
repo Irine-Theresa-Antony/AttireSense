@@ -2,7 +2,10 @@ fastapi
 uvicorn
 torch
 torchvision
-pillow
 numpy
+pillow
 opencv-python
-python-multipart
+pytest
+requests
+scikit-image
+lpips

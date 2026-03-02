@@ -61,9 +61,9 @@ export default function AttireSensePage() {
     const formData = new FormData();
     formData.append("cloth", file);
     formData.append("person_id", selectedModel.id);
-
+//warping-backend
     try {
-      const res = await fetch("https://uninterpretative-ozella-stromal.ngrok-free.dev/tryon", {
+      const res = await fetch("http://127.0.0.1:9000/tryon", {
         method: "POST",
         body: formData,
       });
