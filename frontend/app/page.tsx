@@ -81,10 +81,29 @@ export default function AttireSensePage() {
     return;
   }
 
-  // ------------------ BG REMOVE (future) ------------------
-  if (selectedMode === "bg") {
-    console.log("Background remove not implemented yet");
+  // ------------------ BG REMOVE ------------------
+if (selectedMode === "bg") {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const res = await fetch("http://127.0.0.1:8003/remove-bg", {
+      method: "POST",
+      body: formData,
+    });
+
+    const blob = await res.blob();
+    const imageUrl = URL.createObjectURL(blob);
+
+    setResult(imageUrl);
+    setRecommendations([]);
+  } catch (err) {
+    console.error(err);
   }
+
+  return;
+}
+
 };
 
   
