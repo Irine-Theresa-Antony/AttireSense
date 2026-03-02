@@ -63,7 +63,7 @@ export default function AttireSensePage() {
     formData.append("person_id", selectedModel.id);
 
     try {
-      const res = await fetch("https://uninterpretative-ozella-stromal.ngrok-free.dev/tryon", {
+      const res = await fetch("http://127.0.0.1:9000/tryon", {
         method: "POST",
         body: formData,
       });
