@@ -6,9 +6,6 @@ __pycache__/
 # Virtual env
 venv/
 
-# Dataset
-dataset/
-
 # Models weights
 *.pth
 
