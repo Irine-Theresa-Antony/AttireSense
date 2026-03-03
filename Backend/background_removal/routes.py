@@ -5,7 +5,8 @@ from fastapi import APIRouter, UploadFile, File
 from fastapi.responses import FileResponse
 
 from service import remove_background_logic
-
+from fastapi import HTTPException
+import cv2
 router = APIRouter()
 
 UPLOAD_DIR = "uploads"
@@ -25,7 +26,13 @@ async def remove_background(file: UploadFile = File(...)):
 
     with open(input_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
+    image = cv2.imread(input_path)
 
+    if image is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid image file"
+        )
     remove_background_logic(input_path, output_path)
 
     return FileResponse(output_path, media_type="image/png")

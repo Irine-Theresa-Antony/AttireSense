@@ -9,12 +9,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from ultralytics import YOLO
 import cv2
 from fastapi.responses import FileResponse
+from fastapi import HTTPException
 
 
 app = FastAPI()
 
-model = YOLO("models/best.pt")
 
+model = YOLO("models/best.pt")
 
 app.add_middleware(
     CORSMiddleware,
@@ -39,32 +40,23 @@ def home():
 
 @app.post("/recommend")
 async def recommend_image(file: UploadFile = File(...)):
-    path = os.path.join(UPLOAD_DIR, file.filename)
-
-    with open(path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-
-    query_feat = extract_feature(path)
-    results = recommend(query_feat, myntra_features, myntra_names)
-
-    formatted = [
-    {
-        "image": f"http://127.0.0.1:8000/images/Recommending_Images_BG_Removed/images/{os.path.basename(r[0])}",
-        "score": r[1]
-    }
-    for r in results
-]
-
-    return {"recommendations": formatted}
-
-
-@app.post("/remove-bg")
-async def remove_background(file: UploadFile = File(...)):
+    
+    # ---------------- SAVE INPUT ----------------
     input_path = os.path.join(UPLOAD_DIR, "temp_input.jpg")
 
     with open(input_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
+    # ✅ Validate image BEFORE running YOLO
+    image = cv2.imread(input_path)
 
+    if image is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid image file"
+        )
+
+    
+    # ---------------- REMOVE BACKGROUND ----------------
     results = model(input_path)
     r = results[0]
 
@@ -76,10 +68,23 @@ async def remove_background(file: UploadFile = File(...)):
         mask = (mask > 0.5).astype(np.uint8)
 
         segmented = cv2.bitwise_and(original, original, mask=mask)
-        output_path = os.path.join(UPLOAD_DIR, "output.png")
-        cv2.imwrite(output_path, segmented)
+        bg_removed_path = os.path.join(UPLOAD_DIR, "bg_removed.png")
+        cv2.imwrite(bg_removed_path, segmented)
     else:
-        output_path = input_path
+        bg_removed_path = input_path
 
-    return FileResponse(output_path)
+    # ---------------- FEATURE EXTRACTION ----------------
+    query_feat = extract_feature(bg_removed_path)
 
+    # ---------------- RECOMMEND ----------------
+    results = recommend(query_feat, myntra_features, myntra_names)
+
+    formatted = [
+        {
+            "image": f"http://127.0.0.1:8000/images/Recommending_Images_BG_Removed/images/{os.path.basename(r[0])}",
+            "score": r[1]
+        }
+        for r in results
+    ]
+
+    return {"recommendations": formatted}
