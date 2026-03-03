@@ -15,3 +15,7 @@ package-lock.json
 
 # Env
 .env
+
+.coverage
+uploads/
+temp_*

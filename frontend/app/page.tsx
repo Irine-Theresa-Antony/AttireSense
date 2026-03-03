@@ -163,20 +163,7 @@ if (selectedMode === "bg") {
                   ))}
                 </div>
 
-                {/* Download All */}
-                <button
-                  onClick={() => {
-                    recommendations.forEach((img, index) => {
-                      const link = document.createElement("a");
-                      link.href = img;
-                      link.download = `recommendation_${index + 1}.png`;
-                      link.click();
-                    });
-                  }}
-                  className="absolute bottom-4 right-4 bg-gray-900 text-white px-5 py-2 rounded-md hover:bg-black transition"
-                >
-                  Download All
-                </button>
+                
               </>
             ) : result ? (
               <>
