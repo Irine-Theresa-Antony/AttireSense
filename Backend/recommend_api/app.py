@@ -77,14 +77,22 @@ async def recommend_image(file: UploadFile = File(...)):
     query_feat = extract_feature(bg_removed_path)
 
     # ---------------- RECOMMEND ----------------
-    results = recommend(query_feat, myntra_features, myntra_names)
+    results = recommend(query_feat, myntra_features, myntra_names, top_k=20)
 
-    formatted = [
-        {
-            "image": f"http://127.0.0.1:8000/images/Recommending_Images_BG_Removed/images/{os.path.basename(r[0])}",
-            "score": r[1]
-        }
-        for r in results
-    ]
+    formatted = []
 
+    for path, score in results:
+        filename = os.path.basename(path)
+        full_path = os.path.join(
+            "images/Recommending_Images_BG_Removed/images", filename
+        )
+
+        if os.path.exists(full_path):
+            formatted.append({
+                "image": f"http://127.0.0.1:8001/images/Recommending_Images_BG_Removed/images/{filename}",
+                "score": float(score)
+            })
+
+        if len(formatted) == 5:
+            break
     return {"recommendations": formatted}
