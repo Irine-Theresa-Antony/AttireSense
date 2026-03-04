@@ -3,9 +3,9 @@ from fastapi.responses import StreamingResponse
 from PIL import Image
 import io
 import os
-from dataset_loader import load_person_inputs
-from preprocessing import process_cloth
-from inference import run_inference
+from warping_server.dataset_loader import load_person_inputs
+from warping_server.preprocessing import process_cloth
+from warping_server.inference import run_inference
 import torch
 ROOT = "dataset"
 app = FastAPI()
@@ -45,12 +45,8 @@ async def tryon(
     )
 
     # Convert tensor → image
-    output_img = output.squeeze().permute(1, 2, 0).cpu().numpy()
-    output_img = ((output_img + 1) / 2 * 255).astype("uint8")
-    output_img = Image.fromarray(output_img)
-
     buffer = io.BytesIO()
-    output_img.save(buffer, format="PNG")
+    output.save(buffer, format="PNG")
     buffer.seek(0)
 
     return StreamingResponse(buffer, media_type="image/png")

@@ -5,7 +5,7 @@ __pycache__/
 
 # Virtual env
 venv/
-
+venv310/
 # Models weights
 *.pth
 
@@ -15,3 +15,4 @@ package-lock.json
 
 # Env
 .env
+#dataset
