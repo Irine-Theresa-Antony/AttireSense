@@ -13,7 +13,10 @@ import torch
 ROOT = "dataset"
 app = FastAPI()
 # Load background removal model
-bg_model = YOLO("models/best.pt")   # adjust path if needed
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+model_path = os.path.join(BASE_DIR, "models", "best.pt")
+
+bg_model = YOLO(model_path)  # adjust path if needed
 from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
@@ -36,20 +39,18 @@ async def tryon(
     person, agnostic, densepose, pose, parse_agnostic = \
     load_person_inputs(DATASET_ROOT, person_id)
     # Load uploaded cloth
-    # ---------------- SAVE TEMP IMAGE ----------------
-    import uuid
+    # Read uploaded cloth image into memory
+    cloth_bytes = await cloth.read()
 
-    unique_id = str(uuid.uuid4())
-    temp_input_path = f"temp_{unique_id}.jpg"
+    # Convert bytes -> numpy array
+    np_arr = np.frombuffer(cloth_bytes, np.uint8)
 
-    with open(temp_input_path, "wb") as buffer:
-        buffer.write(await cloth.read())
+    # Decode to OpenCV image
+    original = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
-    # ---------------- RUN YOLO SEGMENTATION ----------------
-    results = bg_model(temp_input_path)
+    # Run YOLO segmentation directly on the image
+    results = bg_model(original)
     r = results[0]
-
-    original = cv2.imread(temp_input_path)
 
     if r.masks is not None:
         mask = r.masks.data[0].cpu().numpy()

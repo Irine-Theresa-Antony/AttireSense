@@ -8,7 +8,8 @@ export default function AttireSensePage() {
   const [file, setFile] = useState<File | null>(null);
   const [recommendations, setRecommendations] = useState<string[]>([]);
   const [mode, setMode] = useState<"bg" | "tryon" | "rec">("bg");
-
+  const [bgColor, setBgColor] = useState("#ffffff");
+  const [bgScene, setBgScene] = useState("");
   const models = [
   { id: "00826_00", image: "/models/00826_00.jpg" },
   { id: "00829_00", image: "/models/00829_00.jpg" },
@@ -39,7 +40,7 @@ export default function AttireSensePage() {
     formData.append("file", file);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/recommend", {
+      const res = await fetch("http://127.0.0.1:8001/recommend", {
         method: "POST",
         body: formData,
       });
@@ -86,7 +87,9 @@ export default function AttireSensePage() {
 if (selectedMode === "bg") {
   const formData = new FormData();
   formData.append("file", file);
-
+  formData.append("bg_color", bgColor);
+  formData.append("bg_scene", bgScene);
+  console.log("Sending BG scene:", bgScene);
   try {
     const res = await fetch("http://127.0.0.1:8003/remove-bg", {
       method: "POST",
@@ -94,9 +97,13 @@ if (selectedMode === "bg") {
     });
 
     const blob = await res.blob();
-    const imageUrl = URL.createObjectURL(blob);
 
-    setResult(imageUrl);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setResult(reader.result as string);
+    };
+
+    reader.readAsDataURL(blob);
     setRecommendations([]);
   } catch (err) {
     console.error(err);
@@ -261,6 +268,54 @@ if (selectedMode === "bg") {
               </div>
             )}
           </div>
+        </div>
+        {/* ================= BACKGROUND OPTIONS ================= */}
+
+        <div className="flex justify-center mt-10 gap-12">
+
+          {/* COLOR PICKER */}
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-sm font-medium text-gray-700">
+              Background Color
+            </p>
+
+            <input
+              type="color"
+              value={bgColor}
+              onChange={(e) => setBgColor(e.target.value)}
+              className="w-12 h-12 border rounded cursor-pointer"
+            />
+
+            <p className="text-xs text-gray-400">
+              Used if no scene selected
+            </p>
+          </div>
+
+          {/* SCENE SELECTOR */}
+          <div className="flex flex-col items-center gap-2">
+
+            <p className="text-sm font-medium text-gray-700">
+              Background Scene
+            </p>
+
+            <select
+              value={bgScene}
+              onChange={(e) => setBgScene(e.target.value)}
+              className="border px-4 py-2 rounded-md bg-white shadow-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-300"
+            >
+              <option value="">None</option>
+              <option value="Studio">Studio</option>
+              <option value="beach">Beach</option>
+              <option value="street">Street</option>
+              <option value="room">Room</option>
+            </select>
+
+            <p className="text-xs text-gray-400">
+              Overrides color if selected
+            </p>
+
+          </div>
+
         </div>
         {/* BUTTONS */}
         
