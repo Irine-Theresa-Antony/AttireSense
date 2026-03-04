@@ -9,3 +9,6 @@ pytest
 requests
 scikit-image
 lpips
+
+#. venv/Scripts/activate
+#python -m uvicorn app:app --host 127.0.0.1 --port 9000 --reload
