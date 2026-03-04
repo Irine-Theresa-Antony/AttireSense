@@ -5,7 +5,18 @@ from fastapi import FastAPI, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from utils import extract_feature, recommend
 from fastapi.middleware.cors import CORSMiddleware
+
+from ultralytics import YOLO
+import cv2
+from fastapi.responses import FileResponse
+from fastapi import HTTPException
+
+
 app = FastAPI()
+
+
+model = YOLO("models/best.pt")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # for development
@@ -29,20 +40,51 @@ def home():
 
 @app.post("/recommend")
 async def recommend_image(file: UploadFile = File(...)):
-    path = os.path.join(UPLOAD_DIR, file.filename)
+    
+    # ---------------- SAVE INPUT ----------------
+    input_path = os.path.join(UPLOAD_DIR, "temp_input.jpg")
 
-    with open(path, "wb") as buffer:
+    with open(input_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
+    # ✅ Validate image BEFORE running YOLO
+    image = cv2.imread(input_path)
 
-    query_feat = extract_feature(path)
+    if image is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid image file"
+        )
+
+    
+    # ---------------- REMOVE BACKGROUND ----------------
+    results = model(input_path)
+    r = results[0]
+
+    original = cv2.imread(input_path)
+
+    if r.masks is not None:
+        mask = r.masks.data[0].cpu().numpy()
+        mask = cv2.resize(mask, (original.shape[1], original.shape[0]))
+        mask = (mask > 0.5).astype(np.uint8)
+
+        segmented = cv2.bitwise_and(original, original, mask=mask)
+        bg_removed_path = os.path.join(UPLOAD_DIR, "bg_removed.png")
+        cv2.imwrite(bg_removed_path, segmented)
+    else:
+        bg_removed_path = input_path
+
+    # ---------------- FEATURE EXTRACTION ----------------
+    query_feat = extract_feature(bg_removed_path)
+
+    # ---------------- RECOMMEND ----------------
     results = recommend(query_feat, myntra_features, myntra_names)
 
     formatted = [
-    {
-        "image": f"http://127.0.0.1:8000/images/Recommending_Images_BG_Removed/images/{os.path.basename(r[0])}",
-        "score": r[1]
-    }
-    for r in results
-]
+        {
+            "image": f"http://127.0.0.1:8000/images/Recommending_Images_BG_Removed/images/{os.path.basename(r[0])}",
+            "score": r[1]
+        }
+        for r in results
+    ]
 
     return {"recommendations": formatted}

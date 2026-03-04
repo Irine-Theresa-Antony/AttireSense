@@ -82,10 +82,29 @@ export default function AttireSensePage() {
     return;
   }
 
-  // ------------------ BG REMOVE (future) ------------------
-  if (selectedMode === "bg") {
-    console.log("Background remove not implemented yet");
+  // ------------------ BG REMOVE ------------------
+if (selectedMode === "bg") {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const res = await fetch("http://127.0.0.1:8003/remove-bg", {
+      method: "POST",
+      body: formData,
+    });
+
+    const blob = await res.blob();
+    const imageUrl = URL.createObjectURL(blob);
+
+    setResult(imageUrl);
+    setRecommendations([]);
+  } catch (err) {
+    console.error(err);
   }
+
+  return;
+}
+
 };
 
   
@@ -145,20 +164,7 @@ export default function AttireSensePage() {
                   ))}
                 </div>
 
-                {/* Download All */}
-                <button
-                  onClick={() => {
-                    recommendations.forEach((img, index) => {
-                      const link = document.createElement("a");
-                      link.href = img;
-                      link.download = `recommendation_${index + 1}.png`;
-                      link.click();
-                    });
-                  }}
-                  className="absolute bottom-4 right-4 bg-gray-900 text-white px-5 py-2 rounded-md hover:bg-black transition"
-                >
-                  Download All
-                </button>
+                
               </>
             ) : result ? (
               <>

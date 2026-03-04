@@ -15,4 +15,7 @@ package-lock.json
 
 # Env
 .env
-#dataset
+
+.coverage
+uploads/
+temp_*
