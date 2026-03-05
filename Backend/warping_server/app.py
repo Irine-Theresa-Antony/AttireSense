@@ -55,7 +55,7 @@ async def tryon(
     if r.masks is not None:
         largest = np.argmax([m.sum() for m in r.masks.data])
         mask = r.masks.data[largest].cpu().numpy()
-        mask = cv2.resize(mask, (original.shape[1], original.shape[0]))
+        mask = cv2.resize(mask,(original.shape[1],original.shape[0]),interpolation=cv2.INTER_NEAREST)        
         mask = (mask > 0.5).astype(np.uint8)
 
         # Cloth only
@@ -83,12 +83,16 @@ async def tryon(
 
         h, w = cloth_crop.shape[:2]
 
-        scale = min(192 / w, 256 / h)
+        scale = min(192 / w, 256 / h, 1.0)  # prevent upscaling
 
         new_w = int(w * scale)
         new_h = int(h * scale)
 
-        cloth_resized = cv2.resize(cloth_crop,(new_w,new_h))
+        cloth_resized = cv2.resize(
+            cloth_crop,
+            (new_w, new_h),
+            interpolation=cv2.INTER_AREA
+        )
 
         x_offset = (192 - new_w) // 2
         y_offset = (256 - new_h) // 2
