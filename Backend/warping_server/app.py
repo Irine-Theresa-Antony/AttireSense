@@ -53,7 +53,8 @@ async def tryon(
     r = results[0]
 
     if r.masks is not None:
-        mask = r.masks.data[0].cpu().numpy()
+        largest = np.argmax([m.sum() for m in r.masks.data])
+        mask = r.masks.data[largest].cpu().numpy()
         mask = cv2.resize(mask, (original.shape[1], original.shape[0]))
         mask = (mask > 0.5).astype(np.uint8)
 
@@ -66,7 +67,35 @@ async def tryon(
         background = cv2.bitwise_and(white_bg, white_bg, mask=mask_inv)
 
         segmented = cv2.add(cloth_part, background)
+        # ---------------- NORMALIZE CLOTH FOR ACGPN ----------------
 
+        mask_indices = np.where(mask == 1)
+
+        y_min = np.min(mask_indices[0])
+        y_max = np.max(mask_indices[0])
+        x_min = np.min(mask_indices[1])
+        x_max = np.max(mask_indices[1])
+
+        cloth_crop = segmented[y_min:y_max, x_min:x_max]
+
+        # create white canvas (ACGPN resolution)
+        canvas = np.ones((256,192,3), dtype=np.uint8) * 255
+
+        h, w = cloth_crop.shape[:2]
+
+        scale = min(192 / w, 256 / h)
+
+        new_w = int(w * scale)
+        new_h = int(h * scale)
+
+        cloth_resized = cv2.resize(cloth_crop,(new_w,new_h))
+
+        x_offset = (192 - new_w) // 2
+        y_offset = (256 - new_h) // 2
+
+        canvas[y_offset:y_offset+new_h, x_offset:x_offset+new_w] = cloth_resized
+
+        segmented = canvas
     else:
         segmented = original
 

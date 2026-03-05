@@ -316,7 +316,7 @@ if (selectedMode === "bg") {
 
           </div>
 
-        </div>
+         </div>
         {/* BUTTONS */}
         
         <div className="flex justify-center gap-10 mt-14">
