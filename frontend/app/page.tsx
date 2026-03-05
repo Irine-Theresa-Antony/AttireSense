@@ -305,9 +305,11 @@ if (selectedMode === "bg") {
             >
               <option value="">None</option>
               <option value="Studio">Studio</option>
-              <option value="beach">Beach</option>
-              <option value="street">Street</option>
-              <option value="room">Room</option>
+              <option value="Beige-parchment">Beige</option>
+              <option value="Floral_baby_pink">Floral</option>
+              <option value="Hazy_green">Hazy_green</option>
+              <option value="Sky blue_aesthetic">SkyBlue</option>
+              <option value="White_Texture">White_Texture</option>
             </select>
 
             <p className="text-xs text-gray-400">
@@ -316,7 +318,7 @@ if (selectedMode === "bg") {
 
           </div>
 
-        </div>
+         </div>
         {/* BUTTONS */}
         
         <div className="flex justify-center gap-10 mt-14">
