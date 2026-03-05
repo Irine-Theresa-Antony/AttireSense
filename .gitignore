@@ -19,3 +19,7 @@ package-lock.json
 .coverage
 uploads/
 temp_*
+
+# Upload folders
+Backend/background_removal/uploads/
+Backend/recommend_api/uploads/
